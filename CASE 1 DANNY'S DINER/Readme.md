@@ -6,7 +6,7 @@
 
 # 🍜 Case Study #1 - Danny's Diner
 <p align="center">
-<img src="IMG/org-1.png" width=40% height=40%>
+<img src="https://github.com/nzehh/8-Weeks-SQL-Challenge/blob/main/IMG/org-1.png" width=40% height=40%>
 
 ## 📕 Table Of Contents
 * 🛠️ [Problem Statement](#problem-statement)
