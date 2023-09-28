@@ -35,8 +35,8 @@ View table
 The sales table captures all ```customer_id``` level purchases with an corresponding ```order_date``` and ```product_id``` information for when and what menu items were ordered.
 
 |customer_id|order_date|product_id|
-|-----------|----------|----------|
-|A          |2021-01-01|1         |
+|-----------|----------|----------|      
+|A          |2021-01-01|1         |     
 |A          |2021-01-01|2         |
 |A          |2021-01-07|2         |
 |A          |2021-01-10|3         |
