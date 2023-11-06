@@ -161,4 +161,7 @@ Danny started by recruiting “runners” to deliver fresh pizza from Pizza Runn
    (iii) converting ```nan``` into null values
    (iv) saved the transformation in a different table
 
-   Click [here]() to view data cleaning solution
+   Click [here](https://github.com/nzehh/8-Weeks-SQL-Challenge/blob/main/CASE%202-%20PIZZA%20RUNNER/Case%202%20data%20cleaning.sql) to view data cleaning solution
+
+# Solutions
+[Pizza Metrics]()
