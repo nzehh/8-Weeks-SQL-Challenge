@@ -164,16 +164,339 @@ Danny started by recruiting “runners” to deliver fresh pizza from Pizza Runn
    Click [here](https://github.com/nzehh/8-Weeks-SQL-Challenge/blob/main/CASE%202-%20PIZZA%20RUNNER/Case%202%20data%20cleaning.sql) to view data cleaning solution
 
 # Solutions
+
 <details>
  <summary>
 Pizza Metrics
   </summary>
+### **Q1. How many pizzas were ordered?**
+ 
+ ```sql
+select count(order_id) from customer_orders
+order by order_id;
+ 
+```
+ 
+| # count(order_id) |
+|-------------------|
+| 14                |
+
+---
+
+### **Q2. How many unique customer orders were made?**
+
+ ```sql
+SELECT count(distinct(order_id)) as unique_customer_order
+  from customer_orders;
+
+  ```
+
+| # unique_customer_order |
+|-------------------------|
+| 10                      |
+
+---
+
+ ### **Q3. How many successful orders were delivered by each runner?**
+ 
+ ```sql
+  SELECT runner_id,count(order_id) as successful_orders
+    FROM runner_orders
+    where pickup_time is not null 
+    group by runner_id;
+
+  ```
+| # runner_id | successful_orders |
+|-------------|-------------------|
+| 1           | 4                 |
+| 2           | 3                 |
+| 3           | 1                 |
+
+---
+
+ ### **Q4. How many of each type of pizza was delivered?**
+ 
+ ```sql
+  select p.pizza_id,p.pizza_name,count(c.pizza_id)as delivered
+  from runner_orders r
+  join customer_orders c
+  using ( order_id)
+  join pizza_names p on p.pizza_id = c.pizza_id
+  where r.pickup_time is not null
+  group by 1,2
+  ;
+
+  ```
+| # pizza_id | pizza_name | delivered |
+|------------|------------|-----------|
+| 1          | Meatlovers | 9         |
+| 2          | Vegetarian | 3         |
+
+---
+
+  ### **Q5. How many Vegetarian and Meatlovers were ordered by each customer?**
+  
+  ```sql
+  select customer_id,
+  count(case when pizza_name = 'meatlovers' then pizza_id else end) meatlover_ordered,
+  count(case when pizza_name = 'vegeterian' then pizza_id else  end) vegeterian_ordered
+  from customer_orders c
+  join pizza_names p using (pizza_id)
+  group by 1
+  ;
+
+```
+
+| # customer_id | meatlover_ordered | vegeterian_ordered |
+|---------------|-------------------|--------------------|
+| 101           | 2                 | 1                  |
+| 102           | 2                 | 1                  |
+| 103           | 3                 | 1                  |
+| 104           | 3                 | 0                  |
+| 105           | 0                 | 1                  |
+
+ ---
+ 
+  ### **Q6. What was the maximum number of pizzas delivered in a single order?**
+  
+  ```sql
+  SELECT max(pizza_order) as max_delivery_per_order
+    FROM( SELECT r.order_id,count(c.pizza_id) as pizza_order
+    FROM runner_orders r
+    join customer_orders c on r.order_id = c.order_id
+    where pickup_time is not null 
+    group by 1)as delivery_per_order
+    order by  1 desc;
+
+ ```
+
+| # max_delivery_per_order |
+|--------------------------|
+| 3                        |
+
+---
+
+### **Q7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?**
+
+```sql
+SELECT  
+    c.customer_id,
+    sum(case when (exclusions or extras <> 'none' ) then 1 else 0 end )as changed_order,
+    sum( case when(exclusions or extras = 'none')  then 1 else 0 end)as no_change_order_count
+FROM
+    customer_orders c
+    JOIN runner_orders r USING (order_id)
+WHERE pickup_time is not null
+group by 1;
+
+```
+
+| # customer_id | changed_order | no_change_order_count |
+|---------------|---------------|-----------------------|
+| 101           | 0             | 2                     |
+| 102           | 0             | 3                     |
+| 103           | 3             | 3                     |
+| 104           | 2             | 2                     |
+| 105           | 1             | 0                     |
+|               |               |                       |
+
+---
+    
+### **Q8. How many pizzas were delivered that had both exclusions and extras?**
+```sql
+SELECT 
+    COUNT(c.pizza_id) AS delivered_orders
+FROM
+    customer_orders c
+    JOIN runner_orders r USING (order_id)
+WHERE
+exclusions and extras <> 'none'and
+pickup_time is not null ;
+ ```
+| # delivered_orders |
+|--------------------|
+| 1                  |
+
+---         
+
+### **Q9. What was the total volume of pizzas ordered for each hour of the day?**
+
+```sql
+select
+	extract(hour from order_time) as hour,
+	count(pizza_id) as pizza_ordered
+from customer_orders
+group by 1
+order by 2 desc;
+
+```
+
+| # hour | pizza_ordered |
+|--------|---------------|
+| 18     | 3             |
+| 23     | 3             |
+| 13     | 3             |
+| 21     | 3             |
+| 19     | 1             |
+| 11     | 1             |
+
+---
+
+### **Q10. What was the volume of orders for each day of the week?**
+
+```sql
+select
+	dayofweek(order_time) as days,
+	count(order_id) as pizza_ordered
+from customer_orders
+group by 1
+order by 2 desc;
+
+```
+
+| # days | pizza_ordered |
+|--------|---------------|
+| 4      | 5             |
+| 7      | 5             |
+| 5      | 3             |
+| 6      | 1             |
+
+---
+
  </details>
 
  <details>
   <summary>
 Runner and Customer Experience
 </summary>
+  
+### **Q1. how many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)?**
+
+```sql
+select extract(week from registration_date + 5) as week,count(runner_id) as signedup_count
+from runners 
+group by 1;
+```
+| # week | signedup_count |
+|--------|----------------|
+| 1      | 2              |
+| 2      | 1              |
+| 3      | 1              |
+
+---
+
+### **Q2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?**
+
+```sql
+select runner_id,
+     round( avg(timestampdiff(minute,order_time,pickup_time)),0) as time
+from runner_orders r
+join customer_orders c using (order_id) 
+group by 1;
+```
+| # runner_id | time |
+|-------------|------|
+| 1           | 15   |
+| 2           | 23   |
+| 3           | 10   |
+
+---
+
+### **Q3. Is there any relationship between the number of pizzas and how long the order takes to prepare?**
+
+```sql
+select pizza_cnt,avg(prep_time) from(
+select count(c.pizza_id)as pizza_cnt, time_format(timediff(pickup_time,order_time),'%i.%s') as prep_time
+from runner_orders r
+join customer_orders c using (order_id) 
+where pickup_time is not null    
+group by 2) as prep
+group by 1;
+```
+| # pizza_cnt | avg(prep_time) |
+|-------------|----------------|
+| 1           | 12.214         |
+| 2           | 18.225         |
+| 3           | 29.17          |
+
+---
+
+### **Q4. What was the average distance travelled for each customer?**
+
+```sql
+select customer_id,concat(round(avg(distance),0),' km') as avg_distance
+from runner_orders r
+join customer_orders c using (order_id)
+where distance is not null
+group by 1;
+```
+| # customer_id | avg_distance |
+|---------------|--------------|
+| 101           | 20 km        |
+| 102           | 17 km        |
+| 103           | 23 km        |
+| 104           | 10 km        |
+| 105           | 25 km        |
+
+---
+
+ ### **Q5. What was the difference between the longest and shortest delivery times for all orders?**
+ 
+ ```sql
+select  max(duration) - min(duration)as timediff
+from runner_orders
+where duration is not null
+ ;
+```
+| # timediff |
+|------------|
+| 30         |
+
+---
+
+### **Q6. What was the average speed for each runner for each delivery and do you notice any trend for these values?**
+
+```SQL
+select  
+	runner_id,
+	order_id, 
+		round(avg(distance / duration),2)as avg_speed,
+	concat(round(avg(distance / (duration / 60))), ' km/hr') as speedperhour
+from runner_orders
+where pickup_time is not null
+ group by 1,2
+ order by 1,2;
+```
+| # runner_id | order_id | avg_speed | speedperhour |
+|-------------|----------|-----------|--------------|
+| 1           | 1        | 0.62      | 38 km/hr     |
+| 1           | 2        | 0.74      | 44 km/hr     |
+| 1           | 3        | 0.67      | 40 km/hr     |
+| 1           | 10       | 1         | 60 km/hr     |
+| 2           | 4        | 0.58      | 35 km/hr     |
+| 2           | 7        | 1         | 60 km/hr     |
+| 2           | 8        | 1.56      | 94 km/hr     |
+| 3           | 5        | 0.67      | 40 km/hr     |
+
+---
+
+
+### **Q7. What is the successful delivery percentage for each runner?**
+
+```sql
+select runner_id,
+concat(round((sum(case when pickup_time is not null then 1 else 0 end) / count(*) * 100)), '%') as delivery_percent
+from runner_orders
+group by 1;
+
+```
+| # runner_id | delivery_percent |
+|-------------|------------------|
+| 1           | 100%             |
+| 2           | 75%              |
+| 3           | 50%              |
+
+---
 </details>
 
 
