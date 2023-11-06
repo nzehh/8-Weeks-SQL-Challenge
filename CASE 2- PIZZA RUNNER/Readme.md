@@ -164,4 +164,5 @@ Danny started by recruiting “runners” to deliver fresh pizza from Pizza Runn
    Click [here](https://github.com/nzehh/8-Weeks-SQL-Challenge/blob/main/CASE%202-%20PIZZA%20RUNNER/Case%202%20data%20cleaning.sql) to view data cleaning solution
 
 # Solutions
-[Pizza Metrics]()
+[Pizza Metrics](https://github.com/nzehh/8-Weeks-SQL-Challenge/blob/main/CASE%202-%20PIZZA%20RUNNER/Pizza%20Metric.sql)
+[Runner and Customer Experience]()
